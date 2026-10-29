@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment and secrets (NEVER commit these)
+.env
+*.pem
+*.key
+
+# Node
+node_modules/
+dist/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

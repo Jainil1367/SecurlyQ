@@ -1,0 +1,6 @@
+line-length = 100
+extend-exclude = ["migrations/versions"]
+
+[lint.flake8-bugbear]
+# FastAPI's dependency-injection style puts Depends()/Query() in argument defaults.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
