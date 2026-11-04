@@ -6,9 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.api.deps import analyst_or_admin, any_user
 from app.core.config import get_settings
 from app.db.session import get_db
-from app.models import Event
+from app.models import Event, User
 from app.schemas.event import EventIn, EventOut, EventPage, IngestResult
 from app.services.ingestion import EventIngestionService
 
@@ -16,8 +17,12 @@ router = APIRouter(prefix="/api/v1/events", tags=["events"])
 
 
 @router.post("", response_model=IngestResult, status_code=status.HTTP_201_CREATED)
-def ingest_events(events: list[EventIn], db: Session = Depends(get_db)) -> IngestResult:
-    """Ingest a batch of security events. Duplicates are skipped, not errors."""
+def ingest_events(
+    events: list[EventIn],
+    db: Session = Depends(get_db),
+    _: User = Depends(analyst_or_admin),
+) -> IngestResult:
+    """Ingest a batch of security events (analyst/admin). Duplicates are skipped, not errors."""
     max_batch = get_settings().max_batch_size
     if not events:
         raise HTTPException(status_code=422, detail="Batch must contain at least one event.")
@@ -31,6 +36,7 @@ def ingest_events(events: list[EventIn], db: Session = Depends(get_db)) -> Inges
 @router.get("", response_model=EventPage)
 def list_events(
     db: Session = Depends(get_db),
+    _: User = Depends(any_user),
     event_type: str | None = None,
     source_ip: str | None = None,
     username: str | None = None,

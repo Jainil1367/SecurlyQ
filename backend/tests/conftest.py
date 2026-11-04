@@ -18,9 +18,12 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app import models as _models  # noqa: F401  (registers tables on Base.metadata)
+from app.api.auth import login_limiter
+from app.core.security import create_access_token, hash_password
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.models import User
 
 
 @pytest.fixture()
@@ -45,6 +48,55 @@ def client(db_session):
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
         yield test_client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    login_limiter.clear()
+    yield
+    login_limiter.clear()
+
+
+TEST_PASSWORD = "correct-horse-battery"
+_TEST_PASSWORD_HASH = hash_password(TEST_PASSWORD)  # hash once; Argon2 is deliberately slow
+
+
+def create_user(db, email: str, role: str) -> User:
+    user = User(email=email, hashed_password=_TEST_PASSWORD_HASH, role=role)
+    db.add(user)
+    db.commit()
+    return user
+
+
+def _client_with_role(db_session, role: str):
+    user = create_user(db_session, f"{role}@example.com", role)
+
+    def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    test_client = TestClient(app)
+    test_client.headers["Authorization"] = f"Bearer {create_access_token(user.id)}"
+    test_client.user = user
+    return test_client
+
+
+@pytest.fixture()
+def analyst_client(db_session):
+    yield _client_with_role(db_session, "analyst")
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def viewer_client(db_session):
+    yield _client_with_role(db_session, "viewer")
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def admin_client(db_session):
+    yield _client_with_role(db_session, "admin")
     app.dependency_overrides.clear()
 
 

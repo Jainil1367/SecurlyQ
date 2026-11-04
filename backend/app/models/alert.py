@@ -15,7 +15,12 @@ class Alert(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     rule_id: Mapped[str] = mapped_column(String(50))
+    # Identity of the finding (rule + entity + first evidence event). UNIQUE, so
+    # re-running analysis over the same events can never create duplicate alerts.
+    dedup_key: Mapped[str] = mapped_column(String(200), unique=True)
     title: Mapped[str] = mapped_column(String(200))
+    source_ip: Mapped[str | None] = mapped_column(String(45), nullable=True)
+    username: Mapped[str | None] = mapped_column(String(255), nullable=True)
     severity: Mapped[str] = mapped_column(String(10))  # low | medium | high | critical
     risk_score: Mapped[float] = mapped_column(Float)  # 0-100, a prioritization signal
     status: Mapped[str] = mapped_column(String(20), default="open")  # open | acknowledged | resolved | false_positive
@@ -23,7 +28,10 @@ class Alert(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    __table_args__ = (Index("ix_alerts_status_severity", "status", "severity"),)
+    __table_args__ = (
+        Index("ix_alerts_status_severity", "status", "severity"),
+        Index("ix_alerts_source_ip", "source_ip"),
+    )
 
 
 class AlertEvidence(Base):

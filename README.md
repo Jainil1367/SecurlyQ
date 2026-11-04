@@ -3,7 +3,7 @@
 **AI-powered security analytics for small IT teams.**
 SecurlyQ ingests security events, detects suspicious activity with rules and machine learning, and explains each finding in plain English.
 
-> Status: early development. Phase 1 (foundation) complete. See [docs/roadmap.md](docs/roadmap.md).
+> Status: early development. Phases 1-2 (foundation, auth, detection rules, alerts API) complete. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What it does
 
@@ -56,14 +56,24 @@ uvicorn app.main:app --reload
 
 Open http://localhost:8000/docs for the interactive API documentation.
 
-Try it:
+Try it (the first account you register becomes the admin):
 
 ```bash
-curl -X POST localhost:8000/api/v1/events -H 'content-type: application/json' -d '[{
+curl -X POST localhost:8000/api/v1/auth/register -H 'content-type: application/json' \
+  -d '{"email":"you@example.com","password":"a-long-passphrase"}'
+TOKEN=$(curl -s -X POST localhost:8000/api/v1/auth/login \
+  -d 'username=you@example.com&password=a-long-passphrase' | python -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
+
+curl -X POST localhost:8000/api/v1/events -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' -d '[{
   "source": "auth-service", "event_type": "login", "outcome": "failure",
   "timestamp": "2026-10-28T12:00:00Z", "source_ip": "203.0.113.7", "username": "alice"
 }]'
+
+curl -X POST localhost:8000/api/v1/analysis/run -H "Authorization: Bearer $TOKEN"   # run detection
+curl localhost:8000/api/v1/alerts -H "Authorization: Bearer $TOKEN"
 ```
+
+Or use the **Authorize** button in the interactive docs at `/docs`.
 
 Run the tests and linter:
 
@@ -83,8 +93,11 @@ Python, FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, scikit-learn, React,
 - [Roadmap](docs/roadmap.md)
 - [Architecture decisions](docs/adr/)
 - [Phase 1 lesson notes](docs/lessons/phase-1-foundation.md)
+- [Phase 2 lesson notes](docs/lessons/phase-2-auth-and-detection.md)
 
 ## Known limitations
 
 - Detection quality is evaluated on sample and synthetic data and does not establish real-world accuracy.
-- The ingestion API is not yet authenticated (added in Phase 2). Do not expose publicly yet.
+- Detection rules cover login activity only; ML anomaly detection arrives in Phase 3.
+- Login rate limiting is per-process memory; production scale needs Redis or an edge WAF.
+- Rules are evaluated on a time window you choose; an attack straddling two separate runs may yield two alerts.
