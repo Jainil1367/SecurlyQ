@@ -15,9 +15,14 @@ from collections import Counter, defaultdict, deque
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from app.core.config import Settings
 from app.models import Event
+
+if TYPE_CHECKING:
+    from app.ml.detector import AnomalyDetector
+    from app.services.anomaly import AnomalyAnalyzer
 
 
 def utc(dt: datetime) -> datetime:
@@ -36,6 +41,7 @@ class Finding:
     evidence: list[tuple[Event, str]]  # (event, why it matters)
     source_ip: str | None = None
     username: str | None = None
+    anomaly_score: float | None = None  # 0-1 percentile from the ML model, when available
 
 
 class Rule(ABC):
@@ -204,11 +210,16 @@ class MultiIPLogin(Rule):
 class RuleEngine:
     """Runs every rule over a batch of events and collects the findings."""
 
-    def __init__(self, rules: Sequence[Rule]):
+    def __init__(self, rules: Sequence[Rule], anomaly: "AnomalyAnalyzer | None" = None):
         self.rules = list(rules)
+        self.anomaly = anomaly
 
     @classmethod
-    def from_settings(cls, s: Settings) -> "RuleEngine":
+    def from_settings(cls, s: Settings, detector: "AnomalyDetector | None" = None) -> "RuleEngine":
+        from app.services.anomaly import (
+            AnomalyAnalyzer,  # local import: keeps rules.py importable without ML libs
+        )
+
         return cls(
             [
                 FailedLoginBurst(s.burst_threshold, timedelta(minutes=s.burst_window_minutes)),
@@ -216,7 +227,8 @@ class RuleEngine:
                     s.fail_then_success_threshold, timedelta(minutes=s.fail_then_success_window_minutes)
                 ),
                 MultiIPLogin(s.multi_ip_threshold, timedelta(minutes=s.multi_ip_window_minutes)),
-            ]
+            ],
+            anomaly=AnomalyAnalyzer(detector) if detector else None,
         )
 
     def run(self, events: Sequence[Event]) -> list[Finding]:
@@ -224,4 +236,6 @@ class RuleEngine:
         findings: list[Finding] = []
         for rule in self.rules:
             findings.extend(rule.evaluate(ordered))
+        if self.anomaly:
+            findings = self.anomaly.apply(ordered, findings)
         return findings

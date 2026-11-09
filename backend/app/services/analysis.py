@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.ml.runtime import get_detector
 from app.models import Event
 from app.services.alert_repository import AlertRepository
 from app.services.rules import RuleEngine
@@ -23,13 +24,16 @@ class AnalysisResult:
     alerts_created: int
     window_start: datetime
     window_end: datetime
+    anomaly_model: str | None = None
 
 
 class AnalysisService:
     def __init__(self, db: Session, engine: RuleEngine | None = None):
         self.db = db
         self.settings = get_settings()
-        self.engine = engine or RuleEngine.from_settings(self.settings)
+        # No trained model file? get_detector() returns None and we run rules-only.
+        self.detector = None if engine else get_detector()
+        self.engine = engine or RuleEngine.from_settings(self.settings, detector=self.detector)
         self.repository = AlertRepository(db)
 
     def run(self, since: datetime | None = None, until: datetime | None = None) -> AnalysisResult:
@@ -56,4 +60,5 @@ class AnalysisService:
             alerts_created=created,
             window_start=since,
             window_end=until,
+            anomaly_model=self.detector.metadata.get("model_version") if self.detector else None,
         )

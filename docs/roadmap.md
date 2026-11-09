@@ -4,7 +4,7 @@
 |---|---|---|
 | 1 | Foundation: repo, schema, migrations, event ingestion, dedup, tests, CI | **Done** |
 | 2 | Auth (JWT + roles), rule engine, risk scoring, alerts API | **Done** |
-| 3 | Data science + ML: feature engineering, Isolation Forest, risk scoring, evaluation | Planned |
+| 3 | Data science + ML: simulator, features, Isolation Forest, hybrid risk scoring, evaluation | **Done** |
 | 4 | LLM explanations (structured JSON, schema validation, fallback) | Planned |
 | 5 | React + TypeScript dashboard (alerts, timelines, investigations, metrics) | Planned |
 | 6 | AWS deployment (RDS, App Runner/ECS, S3, CloudWatch, Secrets Manager, Terraform) | Planned |

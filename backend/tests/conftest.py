@@ -10,6 +10,8 @@ import os
 
 # Must be set before the app imports its settings.
 os.environ["DATABASE_URL"] = "sqlite://"
+# Tests must not pick up a model someone trained locally: keep them deterministic.
+os.environ["ANOMALY_MODEL_PATH"] = "/nonexistent/securlyq-test-model.joblib"
 
 import pytest
 from fastapi.testclient import TestClient
@@ -23,6 +25,7 @@ from app.core.security import create_access_token, hash_password
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.ml import runtime as ml_runtime
 from app.models import User
 
 
@@ -52,10 +55,12 @@ def client(db_session):
 
 
 @pytest.fixture(autouse=True)
-def _reset_rate_limiter():
+def _reset_global_state():
     login_limiter.clear()
+    ml_runtime.clear_cache()
     yield
     login_limiter.clear()
+    ml_runtime.clear_cache()
 
 
 TEST_PASSWORD = "correct-horse-battery"

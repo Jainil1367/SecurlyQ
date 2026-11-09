@@ -9,6 +9,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Train the anomaly model at build time (seeded, ~5 s) so every image ships a known, reproducible model.
+RUN python -m app.ml.train --no-report
+
 # Never run as root inside a container (least privilege).
 RUN useradd --create-home appuser
 USER appuser

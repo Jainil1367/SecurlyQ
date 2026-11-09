@@ -43,6 +43,7 @@ class AlertRepository:
                 title=finding.title,
                 severity=finding.severity,
                 risk_score=self.scorer.score(finding),
+                anomaly_score=finding.anomaly_score,
                 source_ip=finding.source_ip,
                 username=finding.username,
             )

@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     multi_ip_threshold: int = 3  # distinct IPs for one user...
     multi_ip_window_minutes: int = 60  # ...within this window
 
+    # Machine learning
+    anomaly_model_path: str = "models/anomaly_v1.joblib"  # missing file => rules-only mode
+
     # Analysis limits
     analysis_lookback_hours: int = 24
     max_analysis_events: int = 50_000

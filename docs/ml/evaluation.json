@@ -1,0 +1,198 @@
+{
+  "model_version": "isolation-forest-v1",
+  "seed": 7,
+  "quick": false,
+  "sklearn_version": "1.9.1",
+  "threshold": 0.9455,
+  "split": {
+    "train": {
+      "buckets": 7071,
+      "attack_buckets": 369,
+      "attack_share": 0.0522,
+      "incidents": 86
+    },
+    "val": {
+      "buckets": 2522,
+      "attack_buckets": 104,
+      "attack_share": 0.0412,
+      "incidents": 25
+    },
+    "test": {
+      "buckets": 3528,
+      "attack_buckets": 199,
+      "attack_share": 0.0564,
+      "incidents": 46
+    }
+  },
+  "test_days": 14,
+  "model_ranking_quality": {
+    "roc_auc": 0.989,
+    "pr_auc": 0.848,
+    "pr_auc_baseline_always_positive": 0.056,
+    "logreg_roc_auc": 0.994,
+    "logreg_pr_auc": 0.96
+  },
+  "results": [
+    {
+      "approach": "Rules only",
+      "precision": 0.736,
+      "recall": 0.407,
+      "f1": 0.524,
+      "fpr": 0.0087,
+      "tp": 81,
+      "fp": 29,
+      "fn": 118,
+      "tn": 3300,
+      "false_alerts_per_day": 2.07,
+      "incident_recall": 0.891,
+      "incident_recall_by_scenario": {
+        "brute_force": {
+          "caught": 11,
+          "total": 11,
+          "recall": 1.0
+        },
+        "compromise": {
+          "caught": 5,
+          "total": 5,
+          "recall": 1.0
+        },
+        "credential_stuffing": {
+          "caught": 12,
+          "total": 12,
+          "recall": 1.0
+        },
+        "low_and_slow": {
+          "caught": 3,
+          "total": 8,
+          "recall": 0.375
+        },
+        "multi_ip_takeover": {
+          "caught": 10,
+          "total": 10,
+          "recall": 1.0
+        }
+      }
+    },
+    {
+      "approach": "Isolation Forest only",
+      "precision": 0.784,
+      "recall": 0.819,
+      "f1": 0.801,
+      "fpr": 0.0135,
+      "tp": 163,
+      "fp": 45,
+      "fn": 36,
+      "tn": 3284,
+      "false_alerts_per_day": 3.21,
+      "incident_recall": 0.978,
+      "incident_recall_by_scenario": {
+        "brute_force": {
+          "caught": 11,
+          "total": 11,
+          "recall": 1.0
+        },
+        "compromise": {
+          "caught": 5,
+          "total": 5,
+          "recall": 1.0
+        },
+        "credential_stuffing": {
+          "caught": 12,
+          "total": 12,
+          "recall": 1.0
+        },
+        "low_and_slow": {
+          "caught": 8,
+          "total": 8,
+          "recall": 1.0
+        },
+        "multi_ip_takeover": {
+          "caught": 9,
+          "total": 10,
+          "recall": 0.9
+        }
+      }
+    },
+    {
+      "approach": "Hybrid (rules OR model)",
+      "precision": 0.763,
+      "recall": 0.889,
+      "f1": 0.821,
+      "fpr": 0.0165,
+      "tp": 177,
+      "fp": 55,
+      "fn": 22,
+      "tn": 3274,
+      "false_alerts_per_day": 3.93,
+      "incident_recall": 1.0,
+      "incident_recall_by_scenario": {
+        "brute_force": {
+          "caught": 11,
+          "total": 11,
+          "recall": 1.0
+        },
+        "compromise": {
+          "caught": 5,
+          "total": 5,
+          "recall": 1.0
+        },
+        "credential_stuffing": {
+          "caught": 12,
+          "total": 12,
+          "recall": 1.0
+        },
+        "low_and_slow": {
+          "caught": 8,
+          "total": 8,
+          "recall": 1.0
+        },
+        "multi_ip_takeover": {
+          "caught": 10,
+          "total": 10,
+          "recall": 1.0
+        }
+      }
+    },
+    {
+      "approach": "Logistic regression (supervised, reference)",
+      "precision": 0.956,
+      "recall": 0.879,
+      "f1": 0.916,
+      "fpr": 0.0024,
+      "tp": 175,
+      "fp": 8,
+      "fn": 24,
+      "tn": 3321,
+      "false_alerts_per_day": 0.57,
+      "incident_recall": 0.978,
+      "incident_recall_by_scenario": {
+        "brute_force": {
+          "caught": 11,
+          "total": 11,
+          "recall": 1.0
+        },
+        "compromise": {
+          "caught": 5,
+          "total": 5,
+          "recall": 1.0
+        },
+        "credential_stuffing": {
+          "caught": 12,
+          "total": 12,
+          "recall": 1.0
+        },
+        "low_and_slow": {
+          "caught": 8,
+          "total": 8,
+          "recall": 1.0
+        },
+        "multi_ip_takeover": {
+          "caught": 9,
+          "total": 10,
+          "recall": 0.9
+        }
+      }
+    }
+  ],
+  "model_sha256": "db99238391ba9d9cc61f1e314fc2ed792bf56eda5cec0ae385d3882e82b25fbd"
+}

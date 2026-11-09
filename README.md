@@ -3,7 +3,7 @@
 **AI-powered security analytics for small IT teams.**
 SecurlyQ ingests security events, detects suspicious activity with rules and machine learning, and explains each finding in plain English.
 
-> Status: early development. Phases 1-2 (foundation, auth, detection rules, alerts API) complete. See [docs/roadmap.md](docs/roadmap.md).
+> Status: early development. Phases 1-3 (foundation, auth, detection rules, alerts API, anomaly detection) complete. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What it does
 
@@ -30,6 +30,7 @@ securlyq/
 │   │   ├── models/     SQLAlchemy table definitions
 │   │   ├── schemas/    Pydantic request/response shapes
 │   │   └── services/   Business logic (parsing, dedup; later rules, ML, LLM)
+│   ├── app/ml/         Simulator, features, Isolation Forest, evaluation, training CLI
 │   ├── migrations/     Alembic database migrations
 │   ├── tests/          Automated tests
 │   └── Dockerfile
@@ -75,6 +76,15 @@ curl localhost:8000/api/v1/alerts -H "Authorization: Bearer $TOKEN"
 
 Or use the **Authorize** button in the interactive docs at `/docs`.
 
+Train the anomaly model and generate demo data (optional but recommended; without a model SecurlyQ runs rules-only):
+
+```bash
+cd backend
+pip install -r requirements-ml.txt     # adds matplotlib for the report chart
+python -m app.ml.train                 # ~5 s: trains, evaluates, writes models/ and docs/ml/
+python -m app.ml.seed_demo             # 3 days of realistic traffic, then runs detection
+```
+
 Run the tests and linter:
 
 ```bash
@@ -94,10 +104,13 @@ Python, FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, scikit-learn, React,
 - [Architecture decisions](docs/adr/)
 - [Phase 1 lesson notes](docs/lessons/phase-1-foundation.md)
 - [Phase 2 lesson notes](docs/lessons/phase-2-auth-and-detection.md)
+- [Phase 3 lesson notes](docs/lessons/phase-3-data-science-and-ml.md)
+- [Model evaluation report](docs/ml/evaluation.md)
 
 ## Known limitations
 
 - Detection quality is evaluated on sample and synthetic data and does not establish real-world accuracy.
-- Detection rules cover login activity only; ML anomaly detection arrives in Phase 3.
+- Detection covers login activity only. Rules and the anomaly model are evaluated on synthetic data (see [evaluation report](docs/ml/evaluation.md)).
+- Alerts are not updated after creation; evidence for an attack still in progress is not appended by later runs.
 - Login rate limiting is per-process memory; production scale needs Redis or an edge WAF.
 - Rules are evaluated on a time window you choose; an attack straddling two separate runs may yield two alerts.

@@ -24,3 +24,6 @@ dist/
 .vscode/
 .idea/
 .DS_Store
+
+# Trained model artifacts (reproduce with: python -m app.ml.train)
+backend/models/

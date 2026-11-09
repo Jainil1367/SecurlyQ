@@ -23,8 +23,9 @@ class Alert(Base):
     username: Mapped[str | None] = mapped_column(String(255), nullable=True)
     severity: Mapped[str] = mapped_column(String(10))  # low | medium | high | critical
     risk_score: Mapped[float] = mapped_column(Float)  # 0-100, a prioritization signal
+    anomaly_score: Mapped[float | None] = mapped_column(Float, nullable=True)  # 0-1 ML percentile, if a model ran
     status: Mapped[str] = mapped_column(String(20), default="open")  # open | acknowledged | resolved | false_positive
-    explanation: Mapped[dict | None] = mapped_column(JsonType, nullable=True)  # LLM output (Phase 3)
+    explanation: Mapped[dict | None] = mapped_column(JsonType, nullable=True)  # LLM output (Phase 4)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 

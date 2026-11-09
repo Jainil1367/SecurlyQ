@@ -24,6 +24,7 @@ class AlertOut(BaseModel):
     title: str
     severity: Severity
     risk_score: float
+    anomaly_score: float | None = None
     status: AlertStatus
     source_ip: str | None
     username: str | None
@@ -93,3 +94,4 @@ class AnalysisResultOut(BaseModel):
     alerts_created: int
     window_start: UtcDatetime
     window_end: UtcDatetime
+    anomaly_model: str | None = None  # model version used, or null when running rules-only
