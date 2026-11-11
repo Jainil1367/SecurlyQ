@@ -3,7 +3,7 @@
 **AI-powered security analytics for small IT teams.**
 SecurlyQ ingests security events, detects suspicious activity with rules and machine learning, and explains each finding in plain English.
 
-> Status: early development. Phases 1-4 (foundation, auth, detection rules, alerts API, anomaly detection, LLM explanations) complete. See [docs/roadmap.md](docs/roadmap.md).
+> Status: early development. Phases 1-5 (foundation, auth, detection rules, alerts API, anomaly detection, LLM explanations, dashboard) complete. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What it does
 
@@ -35,7 +35,7 @@ securlyq/
 │   ├── migrations/     Alembic database migrations
 │   ├── tests/          Automated tests
 │   └── Dockerfile
-├── frontend/           React + TypeScript dashboard (Phase 5)
+├── frontend/           React + TypeScript dashboard (Vite, TanStack Query, Vitest)
 ├── infra/              Terraform for AWS (Phase 6)
 ├── docs/               Product brief, roadmap, ADRs, lesson notes
 └── .github/workflows/  CI pipeline
@@ -92,12 +92,22 @@ Explain an alert in plain English (template by default; set `LLM_PROVIDER=bedroc
 curl -X POST localhost:8000/api/v1/alerts/1/explain -H "Authorization: Bearer $TOKEN"
 ```
 
+Run the dashboard (needs the API running on port 8000; Vite proxies `/api` to it):
+
+```bash
+cd frontend
+npm install
+npm run dev                        # http://localhost:5173
+```
+
 Run the tests and linter:
 
 ```bash
 cd backend
 pytest
 ruff check .
+cd ../frontend
+npm run typecheck && npm test
 ```
 
 ## Tech stack
@@ -113,6 +123,7 @@ Python, FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, scikit-learn, React,
 - [Phase 2 lesson notes](docs/lessons/phase-2-auth-and-detection.md)
 - [Phase 3 lesson notes](docs/lessons/phase-3-data-science-and-ml.md)
 - [Phase 4 lesson notes](docs/lessons/phase-4-llm-explanations.md)
+- [Phase 5 lesson notes](docs/lessons/phase-5-dashboard.md)
 - [Model evaluation report](docs/ml/evaluation.md)
 - [Enabling Bedrock explanations](docs/aws/bedrock-setup.md)
 
@@ -122,5 +133,6 @@ Python, FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, scikit-learn, React,
 - Detection covers login activity only. Rules and the anomaly model are evaluated on synthetic data (see [evaluation report](docs/ml/evaluation.md)).
 - LLM explanations are validated for safety but not yet scored for quality against analyst judgement, and the live Bedrock integration has been tested only with a stubbed client.
 - Alerts are not updated after creation; evidence for an attack still in progress is not appended by later runs.
+- The dashboard keeps its sign-in token in sessionStorage (readable by injected scripts); an httpOnly cookie is planned for Phase 7. There is no alerts-over-time chart yet because the API has no time-series endpoint.
 - Login rate limiting is per-process memory; production scale needs Redis or an edge WAF.
 - Rules are evaluated on a time window you choose; an attack straddling two separate runs may yield two alerts.

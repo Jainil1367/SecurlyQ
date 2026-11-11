@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     # Ingestion safety limits (protect the API from oversized requests).
     max_batch_size: int = 1000
 
+    # Browser origins allowed to call the API (the deployed dashboard). In development the Vite
+    # proxy makes requests same-origin, so this only matters when the frontend is on another domain.
+    # Set as JSON in the environment, e.g. CORS_ORIGINS='["https://app.example.com"]'.
+    cors_origins: list[str] = []
+
     # Authentication
     jwt_secret: str = INSECURE_DEV_JWT_SECRET
     jwt_algorithm: str = "HS256"

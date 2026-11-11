@@ -1,0 +1,74 @@
+/* One set of design tokens. Components only use these variables, so a theme is just a new set of values. */
+:root,
+:root[data-theme="dark"] {
+  --bg: #0b0e14;
+  --surface-nav: #0d1119;
+  --surface: #111621;
+  --surface-2: #161c29;
+  --surface-selected: #151c2b;
+  --border: #232b3b;
+  --border-soft: #1b2230;
+  --border-input: #2e3850;
+  --text: #e8ecf3;
+  --text-body: #d6dce8;
+  --text-muted: #98a2b3;
+  --accent: #6c8cff;
+  --accent-ink: #0b0e14;
+  --accent-text: #8fa8ff;
+  --accent-soft: rgba(108, 140, 255, 0.14);
+  --sev-critical-bg: #ff8a8a;
+  --sev-critical-ink: #2a0a0a;
+  --sev-high-bg: rgba(255, 159, 64, 0.14);
+  --sev-high-ink: #ffb067;
+  --sev-high-line: rgba(255, 159, 64, 0.4);
+  --sev-medium-bg: rgba(242, 208, 96, 0.12);
+  --sev-medium-ink: #f2d060;
+  --sev-medium-line: rgba(242, 208, 96, 0.35);
+  --sev-low-bg: rgba(143, 168, 255, 0.12);
+  --sev-low-ink: #a9bbff;
+  --sev-low-line: rgba(143, 168, 255, 0.35);
+  --fill-critical: #ff8a8a;
+  --fill-high: #ffb067;
+  --fill-medium: #f2d060;
+  --fill-low: #8fa8ff;
+  --danger: #ff8a8a;
+  --ok: #7bd88f;
+  --radius: 12px;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #f6f4ef;
+  --surface-nav: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #ece8de;
+  --surface-selected: #edf0ff;
+  --border: #e5e1d8;
+  --border-soft: #ece8de;
+  --border-input: #d5d0c4;
+  --text: #1b1f2a;
+  --text-body: #2e3442;
+  --text-muted: #5f6675;
+  --accent: #3b5bdb;
+  --accent-ink: #ffffff;
+  --accent-text: #2b45b0;
+  --accent-soft: #edf0ff;
+  --sev-critical-bg: #b42318;
+  --sev-critical-ink: #ffffff;
+  --sev-high-bg: #fff1e0;
+  --sev-high-ink: #9a4a00;
+  --sev-high-line: #f5c48a;
+  --sev-medium-bg: #fff8d6;
+  --sev-medium-ink: #7a5c00;
+  --sev-medium-line: #ebd36b;
+  --sev-low-bg: #edf0ff;
+  --sev-low-ink: #2b45b0;
+  --sev-low-line: #b7c3f5;
+  --fill-critical: #b42318;
+  --fill-high: #e5832b;
+  --fill-medium: #d9b52e;
+  --fill-low: #3b5bdb;
+  --danger: #b42318;
+  --ok: #1a7f37;
+  color-scheme: light;
+}
