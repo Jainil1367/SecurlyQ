@@ -3,7 +3,7 @@
 **AI-powered security analytics for small IT teams.**
 SecurlyQ ingests security events, detects suspicious activity with rules and machine learning, and explains each finding in plain English.
 
-> Status: early development. Phases 1-3 (foundation, auth, detection rules, alerts API, anomaly detection) complete. See [docs/roadmap.md](docs/roadmap.md).
+> Status: early development. Phases 1-4 (foundation, auth, detection rules, alerts API, anomaly detection, LLM explanations) complete. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What it does
 
@@ -31,6 +31,7 @@ securlyq/
 │   │   ├── schemas/    Pydantic request/response shapes
 │   │   └── services/   Business logic (parsing, dedup; later rules, ML, LLM)
 │   ├── app/ml/         Simulator, features, Isolation Forest, evaluation, training CLI
+│   ├── app/llm/        Bedrock client, sanitizer, prompt, output validation, fallback
 │   ├── migrations/     Alembic database migrations
 │   ├── tests/          Automated tests
 │   └── Dockerfile
@@ -85,6 +86,12 @@ python -m app.ml.train                 # ~5 s: trains, evaluates, writes models/
 python -m app.ml.seed_demo             # 3 days of realistic traffic, then runs detection
 ```
 
+Explain an alert in plain English (template by default; set `LLM_PROVIDER=bedrock` per [the setup guide](docs/aws/bedrock-setup.md) for model-written text):
+
+```bash
+curl -X POST localhost:8000/api/v1/alerts/1/explain -H "Authorization: Bearer $TOKEN"
+```
+
 Run the tests and linter:
 
 ```bash
@@ -105,12 +112,15 @@ Python, FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, scikit-learn, React,
 - [Phase 1 lesson notes](docs/lessons/phase-1-foundation.md)
 - [Phase 2 lesson notes](docs/lessons/phase-2-auth-and-detection.md)
 - [Phase 3 lesson notes](docs/lessons/phase-3-data-science-and-ml.md)
+- [Phase 4 lesson notes](docs/lessons/phase-4-llm-explanations.md)
 - [Model evaluation report](docs/ml/evaluation.md)
+- [Enabling Bedrock explanations](docs/aws/bedrock-setup.md)
 
 ## Known limitations
 
 - Detection quality is evaluated on sample and synthetic data and does not establish real-world accuracy.
 - Detection covers login activity only. Rules and the anomaly model are evaluated on synthetic data (see [evaluation report](docs/ml/evaluation.md)).
+- LLM explanations are validated for safety but not yet scored for quality against analyst judgement, and the live Bedrock integration has been tested only with a stubbed client.
 - Alerts are not updated after creation; evidence for an attack still in progress is not appended by later runs.
 - Login rate limiting is per-process memory; production scale needs Redis or an edge WAF.
 - Rules are evaluated on a time window you choose; an attack straddling two separate runs may yield two alerts.

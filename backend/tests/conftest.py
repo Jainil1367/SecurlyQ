@@ -12,6 +12,7 @@ import os
 os.environ["DATABASE_URL"] = "sqlite://"
 # Tests must not pick up a model someone trained locally: keep them deterministic.
 os.environ["ANOMALY_MODEL_PATH"] = "/nonexistent/securlyq-test-model.joblib"
+os.environ["LLM_PROVIDER"] = "disabled"  # tests never call a real model
 
 import pytest
 from fastapi.testclient import TestClient
@@ -20,10 +21,12 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app import models as _models  # noqa: F401  (registers tables on Base.metadata)
+from app.api.alerts import explain_limiter
 from app.api.auth import login_limiter
 from app.core.security import create_access_token, hash_password
 from app.db.base import Base
 from app.db.session import get_db
+from app.llm import explainer as llm_explainer
 from app.main import app
 from app.ml import runtime as ml_runtime
 from app.models import User
@@ -57,10 +60,14 @@ def client(db_session):
 @pytest.fixture(autouse=True)
 def _reset_global_state():
     login_limiter.clear()
+    explain_limiter.clear()
     ml_runtime.clear_cache()
+    llm_explainer.clear_cache()
     yield
     login_limiter.clear()
+    explain_limiter.clear()
     ml_runtime.clear_cache()
+    llm_explainer.clear_cache()
 
 
 TEST_PASSWORD = "correct-horse-battery"

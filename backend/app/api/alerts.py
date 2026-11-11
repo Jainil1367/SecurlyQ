@@ -7,7 +7,10 @@ from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import analyst_or_admin, any_user
+from app.core.config import get_settings
+from app.core.rate_limit import SlidingWindowRateLimiter
 from app.db.session import get_db
+from app.llm.explainer import LLMExplainer, get_explainer
 from app.models import Alert, AlertEvidence, Event, Investigation, User
 from app.schemas.alert import (
     AlertDetail,
@@ -22,8 +25,12 @@ from app.schemas.alert import (
     Severity,
 )
 from app.schemas.event import EventOut
+from app.schemas.explanation import ExplanationOut
 
 router = APIRouter(prefix="/api/v1/alerts", tags=["alerts"])
+
+# Each explanation can cost money (Bedrock bills per token), so cap how often one user can trigger it.
+explain_limiter = SlidingWindowRateLimiter(max_events=get_settings().llm_requests_per_hour, window_seconds=3600)
 
 
 def _with_counts(db: Session, alerts: list[Alert]) -> list[AlertOut]:
@@ -42,6 +49,17 @@ def _with_counts(db: Session, alerts: list[Alert]) -> list[AlertOut]:
         item.evidence_count = counts.get(a.id, 0)
         out.append(item)
     return out
+
+
+def _evidence(db: Session, alert_id: int) -> list[tuple[str, Event]]:
+    """(reason, event) pairs for an alert, oldest first."""
+    rows = db.execute(
+        select(AlertEvidence.reason, Event)
+        .join(Event, Event.id == AlertEvidence.event_id)
+        .where(AlertEvidence.alert_id == alert_id)
+        .order_by(Event.timestamp, Event.id)
+    ).all()
+    return [(reason, event) for reason, event in rows]
 
 
 def _get_or_404(db: Session, alert_id: int) -> Alert:
@@ -132,12 +150,7 @@ def alert_summary(db: Session = Depends(get_db), _: User = Depends(any_user)) ->
 @router.get("/{alert_id}", response_model=AlertDetail)
 def get_alert(alert_id: int, db: Session = Depends(get_db), _: User = Depends(any_user)) -> AlertDetail:
     alert = _get_or_404(db, alert_id)
-    evidence_rows = db.execute(
-        select(AlertEvidence.reason, Event)
-        .join(Event, Event.id == AlertEvidence.event_id)
-        .where(AlertEvidence.alert_id == alert_id)
-        .order_by(Event.timestamp, Event.id)
-    ).all()
+    evidence_rows = _evidence(db, alert_id)
     note_rows = db.execute(
         select(Investigation, User.email)
         .outerjoin(User, User.id == Investigation.assigned_to)
@@ -203,3 +216,36 @@ def add_note(
         notes=note.notes,
         updated_at=note.updated_at,
     )
+
+
+@router.post("/{alert_id}/explain", response_model=ExplanationOut)
+def explain_alert(
+    alert_id: int,
+    refresh: bool = False,
+    db: Session = Depends(get_db),
+    user: User = Depends(analyst_or_admin),
+    explainer: LLMExplainer = Depends(get_explainer),
+) -> ExplanationOut | dict:
+    """Plain-English explanation of an alert (Amazon Bedrock, or a template fallback).
+
+    Generated on demand and stored with the alert. Pass `?refresh=true` to regenerate.
+    The text is advisory: it never changes status and never triggers any action.
+    """
+    alert = _get_or_404(db, alert_id)
+    if alert.explanation and not refresh:
+        return alert.explanation  # already generated: free, instant
+
+    key = f"user:{user.id}"
+    if explain_limiter.is_blocked(key):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Explanation limit reached. Try again later.",
+            headers={"Retry-After": str(explain_limiter.retry_after(key))},
+        )
+    explanation = explainer.explain(alert, _evidence(db, alert_id))
+    if explainer.generator is not None:
+        explain_limiter.record(key)  # only real model calls count against the budget
+
+    alert.explanation = explanation.model_dump(mode="json")
+    db.commit()
+    return explanation

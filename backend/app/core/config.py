@@ -43,6 +43,16 @@ class Settings(BaseSettings):
     # Machine learning
     anomaly_model_path: str = "models/anomaly_v1.joblib"  # missing file => rules-only mode
 
+    # LLM explanations (Amazon Bedrock). "disabled" => deterministic template explanations only.
+    llm_provider: str = "disabled"  # disabled | bedrock
+    bedrock_model_id: str = ""  # copy the exact model/inference-profile ID from the Bedrock console
+    aws_region: str = "us-east-1"
+    llm_timeout_seconds: int = 20
+    llm_max_output_tokens: int = 700
+    llm_max_evidence_events: int = 25  # cap on events sent to the model (cost + privacy)
+    llm_redact_usernames: bool = True  # replace account names with account-1, account-2, ...
+    llm_requests_per_hour: int = 30  # per user; protects the AWS bill
+
     # Analysis limits
     analysis_lookback_hours: int = 24
     max_analysis_events: int = 50_000
@@ -54,6 +64,10 @@ class Settings(BaseSettings):
             self.jwt_secret == INSECURE_DEV_JWT_SECRET or len(self.jwt_secret) < 32
         ):
             raise ValueError("JWT_SECRET must be set to a random value of 32+ chars outside development")
+        if self.llm_provider not in {"disabled", "bedrock"}:
+            raise ValueError("LLM_PROVIDER must be 'disabled' or 'bedrock'")
+        if self.llm_provider == "bedrock" and not self.bedrock_model_id:
+            raise ValueError("BEDROCK_MODEL_ID is required when LLM_PROVIDER=bedrock")
         return self
 
 
