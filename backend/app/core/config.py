@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     cors_origins: list[str] = []
 
     # Authentication
+    # When false, /auth/register works only to create the very first (admin) account; after that,
+    # admins create accounts with POST /users. Production sets this to false.
+    open_registration: bool = True
     jwt_secret: str = INSECURE_DEV_JWT_SECRET
     jwt_algorithm: str = "HS256"
     access_token_minutes: int = 60

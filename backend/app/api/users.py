@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import admin_only
+from app.core.security import hash_password
 from app.db.session import get_db
 from app.models import User
-from app.schemas.user import RoleUpdate, UserOut
+from app.schemas.user import AdminCreateUser, RoleUpdate, UserOut
 
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
 
@@ -13,6 +15,19 @@ router = APIRouter(prefix="/api/v1/users", tags=["users"])
 @router.get("", response_model=list[UserOut])
 def list_users(db: Session = Depends(get_db), _: User = Depends(admin_only)):
     return db.scalars(select(User).order_by(User.id)).all()
+
+
+@router.post("", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+def create_user(body: AdminCreateUser, db: Session = Depends(get_db), _: User = Depends(admin_only)):
+    """Admin-only account creation (how teammates join when open registration is off)."""
+    user = User(email=body.email.lower(), hashed_password=hash_password(body.password), role=body.role)
+    db.add(user)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered") from None
+    return user
 
 
 @router.patch("/{user_id}/role", response_model=UserOut)

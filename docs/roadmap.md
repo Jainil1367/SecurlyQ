@@ -7,7 +7,7 @@
 | 3 | Data science + ML: simulator, features, Isolation Forest, hybrid risk scoring, evaluation | **Done** |
 | 4 | LLM explanations on Amazon Bedrock (sanitized input, schema + safety validation, template fallback) | **Done** (live Bedrock call untested) |
 | 5 | React + TypeScript dashboard (alerts, evidence timeline, explanations, notes, metrics, dark/light themes) | **Done** (events, model health pages and trend chart deferred) |
-| 6 | AWS deployment (RDS, App Runner/ECS, S3, CloudWatch, Secrets Manager, Terraform) | Planned |
+| 6 | AWS deployment (RDS, App Runner, CloudFront + S3, CloudWatch, Secrets Manager, Terraform) | **Written, not yet applied** |
 | 7 | Hardening: rate limiting, audit log, load tests, threat model, demo | Planned |
 
 ## Release levels

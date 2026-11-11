@@ -30,8 +30,13 @@ login_limiter = SlidingWindowRateLimiter(
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register(body: RegisterIn, db: Session = Depends(get_db)) -> User:
-    """Create an account. The very first account becomes the admin; the rest are analysts."""
+    """Create an account. The very first account becomes the admin; the rest are analysts.
+
+    With OPEN_REGISTRATION=false (production) only that first bootstrap account can self-register.
+    """
     is_first = (db.scalar(select(func.count(User.id))) or 0) == 0
+    if not is_first and not get_settings().open_registration:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Registration is closed. Ask an administrator for an account.")
     user = User(
         email=body.email.lower(),
         hashed_password=hash_password(body.password),

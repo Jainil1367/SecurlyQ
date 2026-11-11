@@ -3,7 +3,7 @@
 **AI-powered security analytics for small IT teams.**
 SecurlyQ ingests security events, detects suspicious activity with rules and machine learning, and explains each finding in plain English.
 
-> Status: early development. Phases 1-5 (foundation, auth, detection rules, alerts API, anomaly detection, LLM explanations, dashboard) complete. See [docs/roadmap.md](docs/roadmap.md).
+> Status: early development. Phases 1-5 (foundation, auth, detection rules, alerts API, anomaly detection, LLM explanations, dashboard) complete; Phase 6 AWS infrastructure is written but not yet applied. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What it does
 
@@ -36,7 +36,7 @@ securlyq/
 │   ├── tests/          Automated tests
 │   └── Dockerfile
 ├── frontend/           React + TypeScript dashboard (Vite, TanStack Query, Vitest)
-├── infra/              Terraform for AWS (Phase 6)
+├── infra/              Terraform for AWS (App Runner, RDS, CloudFront, Secrets Manager)
 ├── docs/               Product brief, roadmap, ADRs, lesson notes
 └── .github/workflows/  CI pipeline
 ```
@@ -126,6 +126,8 @@ Python, FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, scikit-learn, React,
 - [Phase 5 lesson notes](docs/lessons/phase-5-dashboard.md)
 - [Model evaluation report](docs/ml/evaluation.md)
 - [Enabling Bedrock explanations](docs/aws/bedrock-setup.md)
+- [Deploying to AWS](docs/aws/deployment.md)
+- [Phase 6 lesson notes](docs/lessons/phase-6-aws-deployment.md)
 
 ## Known limitations
 

@@ -13,6 +13,16 @@ class RegisterIn(BaseModel):
     password: str = Field(min_length=10, max_length=128)
 
 
+class AdminCreateUser(BaseModel):
+    """An admin creates an account and chooses its role (extra fields are rejected)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr
+    password: str = Field(min_length=10, max_length=128)
+    role: Role = "analyst"
+
+
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

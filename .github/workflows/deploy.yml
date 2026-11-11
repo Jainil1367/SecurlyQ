@@ -1,0 +1,57 @@
+name: Deploy
+
+# Manual only: you press "Run workflow" in the GitHub Actions tab. Needs the one-time setup in
+# docs/aws/deployment.md (repository variables AWS_REGION, ECR_REPOSITORY, FRONTEND_BUCKET,
+# CLOUDFRONT_DISTRIBUTION_ID, APPRUNNER_SERVICE_ARN and secret AWS_DEPLOY_ROLE_ARN).
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write # lets the job request a short-lived AWS token (OIDC)
+  contents: read
+
+concurrency: deploy
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push the backend image
+        working-directory: backend
+        env:
+          IMAGE: ${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}
+        run: |
+          docker build -t "$IMAGE:latest" -t "$IMAGE:${{ github.sha }}" .
+          docker push "$IMAGE:latest"
+          docker push "$IMAGE:${{ github.sha }}"
+
+      - name: Start the App Runner deployment
+        run: aws apprunner start-deployment --service-arn "${{ vars.APPRUNNER_SERVICE_ARN }}"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build the dashboard
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload the dashboard and refresh the CDN
+        run: |
+          aws s3 sync frontend/dist "s3://${{ vars.FRONTEND_BUCKET }}" --delete
+          aws cloudfront create-invalidation --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" --paths "/*"

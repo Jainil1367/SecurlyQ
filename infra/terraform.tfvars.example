@@ -1,0 +1,8 @@
+# Copy to terraform.tfvars (git-ignored) and edit.
+alert_email        = "you@example.com"
+monthly_budget_usd = 40
+
+# Start with template explanations. After Bedrock model access is granted in the console:
+#   llm_provider     = "bedrock"
+#   bedrock_model_id = "<exact ID from the Bedrock console>"
+llm_provider = "disabled"
