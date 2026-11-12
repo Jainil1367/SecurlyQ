@@ -43,6 +43,8 @@ securlyq/
 
 ## Quick start (local)
 
+New to the project? Follow the step-by-step [local development guide](docs/local-development.md) (VS Code, Windows or macOS). The short version:
+
 Requirements: Python 3.11+, Docker Desktop.
 
 ```bash
@@ -117,6 +119,7 @@ Python, FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, scikit-learn, React,
 ## Documentation
 
 - [Product brief](docs/product-brief.md)
+- [Local development guide](docs/local-development.md)
 - [Roadmap](docs/roadmap.md)
 - [Architecture decisions](docs/adr/)
 - [Phase 1 lesson notes](docs/lessons/phase-1-foundation.md)

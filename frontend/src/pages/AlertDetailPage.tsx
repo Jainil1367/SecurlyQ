@@ -44,7 +44,9 @@ function ExplanationPanel({ alert, canExplain }: { alert: AlertDetail; canExplai
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <h2 style={{ fontSize: 16, fontWeight: 600 }}>Explanation</h2>
         {ex ? (
-          <span className="pill pill-accent">{ex.source === "llm" ? "Amazon Bedrock · validated" : "Template (model unavailable)"}</span>
+          <span className="pill pill-accent" title={ex.fallback_reason ?? undefined}>
+            {ex.source === "llm" ? "Amazon Bedrock · validated" : "Template explanation"}
+          </span>
         ) : null}
       </div>
       {!ex ? (
